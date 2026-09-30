@@ -21,3 +21,61 @@ node_modules
 junit.xml
 coverage/
 frontend/bundle-size.json
+
+# ---------------------------------------------------------------------------------------------
+# Personal-fork additions (not in upstream openGym) — keep secrets and machine files out of git.
+# ---------------------------------------------------------------------------------------------
+
+# Environment files with real values (the committed template stays)
+.env.*
+!.env.example
+# The standalone PWA build settings — public values only (frontend/.env.pwa)
+!.env.pwa
+
+# Apple / iOS signing material — never commit
+*.p12
+*.pfx
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+AuthKey_*.p8
+*.p8
+ExportOptions.plist
+
+# Other private keys, keystores and credentials
+*.pem
+*.key
+*.keystore
+*.jks
+id_rsa*
+id_ed25519*
+credentials.json
+secrets.json
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Xcode / CocoaPods machine-local output (frontend/ios/.gitignore covers the rest)
+**/xcuserdata/
+DerivedData/
+*.xcarchive
+*.ipa
+*.dSYM.zip
+*.dSYM/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS clutter
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.AppleDouble
+.LSOverride

@@ -6,6 +6,7 @@ import { registerCustom } from '../lib/exercises.js'
 import { DEMO, DEMO_SEEDED } from '../lib/demo.js'
 import { rememberDefaultLang } from '../lib/default-lang.js'
 import { guestAllowed } from '../lib/guest.js'
+import { STANDALONE_WEB, idbLoad, idbSave, pickStart, requestPersistence } from '../lib/standalone.js'
 import { MOBILE, initReminderSync, nativeLoad, nativeSave, onAppActive, readJsonFile, syncReminder, writeAutoBackup, writeJsonFile } from '../lib/mobile.js'
 import { mergeStates, localExtras, stampRoutines, stampCustomEx, inUnitOf, keepReset, resetIdsOf, mergeResetIds, entryKey } from '../lib/sync-merge.js'
 import { convertStateUnit } from '../lib/units.js'
@@ -254,6 +255,9 @@ export const useStore = create((set, get) => {
   let fpOf = null          // the copy the stored fingerprint was last taken of (confirmed)
   let keeping = null       // phone: the file write of what keepForPrevious set aside, until it lands
   let mirrorQ = Promise.resolve()   // phone: the file mirror's writes, one after the other (saveMirror)
+  let webTm = null                  // standalone web build: the pending IndexedDB write (webPersist)
+  let webQ = Promise.resolve()      // …and its writes, one after the other
+  let toldNoDisk = false
 
   const readAdopt = () => { try { return JSON.parse(localStorage.getItem(ADOPT_KEY)) || null } catch { return null } }
   const writeAdopt = v => { try { if (v) localStorage.setItem(ADOPT_KEY, JSON.stringify(v)); else localStorage.removeItem(ADOPT_KEY) } catch { /* the hold in memory still stands */ } }
@@ -388,6 +392,29 @@ export const useStore = create((set, get) => {
     return null
   }
 
+  // Standalone web build: the same mirror, into IndexedDB (lib/standalone.js). Each write takes the
+  // copy in the store when its turn comes, so a slow write never lands after a later one. A write
+  // that fails is said once — localStorage may still hold the change, but that is the copy a
+  // browser drops first, so the person should know to export a backup.
+  const webPersist = (now = false) => {
+    clearTimeout(webTm)
+    webTm = null
+    const write = () => {
+      webTm = null
+      return (webQ = webQ.then(() => idbSave(get().S)).then(ok => {
+        if (ok) { toldNoDisk = false; return }
+        if (toldNoDisk) return
+        toldNoDisk = true
+        import('./useUI.js')
+          .then(({ useUI }) => useUI.getState().toast(t('This device is out of storage: the change could not be saved. Export a backup from Settings.')))
+          .catch(() => {})
+      }).catch(() => {}))
+    }
+    if (now) return write()
+    webTm = setTimeout(write, 500)
+    return null
+  }
+
   // `_ts` is when this device last changed the data — it decides which copy wins on the next
   // pull (restoredStateFor). A copy merely adopted from the server or the file mirror keeps the
   // stamp it came with: re-stamping a read would make an unchanged copy look newer than a real
@@ -412,7 +439,9 @@ export const useStore = create((set, get) => {
       toldNoRoom = false
     } catch (e) {
       saved = false
-      if (!toldNoRoom) {
+      // The standalone web build keeps its durable copy in IndexedDB, which webPersist below
+      // writes and speaks up for if it fails; there is no server this change "still goes to".
+      if (!toldNoRoom && !STANDALONE_WEB) {
         toldNoRoom = true
         import('./useUI.js')
           .then(({ useUI }) => useUI.getState().toast(t('This device is out of storage: the change is not saved on it. Signed in, it still goes to the server.')))
@@ -426,6 +455,7 @@ export const useStore = create((set, get) => {
     // server — goes to the file at once. Until it does, the file holds the copy it replaced,
     // which looks newer, and a start in between would take that one back (restoreFromMirror).
     if (MOBILE) nativePersist(!stamp)
+    if (STANDALONE_WEB) webPersist(!stamp)
     if (push && get().user) {
       // Before boot has pulled, the copy in hand may be older than the server's: a push now
       // would carry it with a stale (or no) baseRev. It waits for finishBoot.
@@ -562,6 +592,7 @@ export const useStore = create((set, get) => {
   // kills the app.
   const flush = () => {
     if (MOBILE && saveTm) nativePersist(true)
+    if (STANDALONE_WEB && webTm) webPersist(true)
     if (pushTm) {
       clearTimeout(pushTm)
       pushTm = null
@@ -641,7 +672,7 @@ export const useStore = create((set, get) => {
     // On a phone the file is wiped with it, now rather than after the usual wait: a start in
     // between would open in local mode on the signed-out account's data, since that boot takes
     // the file whenever storage holds nothing.
-    const wiped = MOBILE ? nativePersist(true) : null
+    const wiped = MOBILE ? nativePersist(true) : STANDALONE_WEB ? webPersist(true) : null
     // The account's photos and videos go with its copy (a shared device keeps nothing of it),
     // except the ones a stash still refers to — whatever was pending is in a stash by now
     // (signOut refuses otherwise) and comes back with it. A file picked from here on is kept.
@@ -1458,6 +1489,20 @@ export const useStore = create((set, get) => {
         // the choice. Picking local (even with no data yet) persists that choice below and this
         // never asks again.
         finishBoot({ needsMobileOnboarding: !remote && !hasData(get().S) })
+        return
+      }
+      // Standalone web build (lib/standalone.js): no backend, no sign-in — straight into the local
+      // profile. IndexedDB holds the durable copy; a newer one there than in localStorage (evicted,
+      // or a write the tab closed on) is taken back, and data only localStorage has — the first
+      // start of this build on a browser that already had some — is copied across.
+      if (STANDALONE_WEB) {
+        const saved = await idbLoad()
+        const pick = pickStart(saved, get().S, hasData)
+        if (pick === 'durable') persist(Object.assign(clone(DEF), saved), false, false)
+        else if (pick === 'seed') webPersist(true)
+        get().setGuest(true)
+        requestPersistence()
+        finishBoot()
         return
       }
       // Demo build (GitHub Pages): no backend at all — seed once, stay in guest mode.

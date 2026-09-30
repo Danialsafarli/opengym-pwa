@@ -1,40 +1,37 @@
-# Publishes the browser-only demo to GitHub Pages: https://duartesantos8.github.io/openGym/
+# Builds the standalone PWA (docs/PWA_STANDALONE.md) and publishes it to GitHub Pages:
+# https://danialsafarli.github.io/opengym-pwa/
 #
-# Dormant from 2026-08-19 to 2026-09-10 while the GitHub account was suspended; live again since.
-# The same build (same command, Vite's base is './') is also served from the project's own site at
-# https://opengym.duarte-santos.ch/demo/, so the demo has two addresses with identical content.
+# This fork replaces upstream's demo deployment (VITE_DEMO=1, seeded example data) with the
+# standalone build (`npm run build:pwa`: VITE_STANDALONE_WEB=1 from frontend/.env.pwa) — your own
+# data, kept in the browser, no backend. Nothing built is committed: dist/ exists only inside the
+# job and goes to Pages as an artifact.
 #
-# Pages serves static files only, so this build has no backend — VITE_DEMO=1 makes the app
-# boot straight into guest mode with a seeded example history (see frontend/src/lib/demo.js).
-# The exercise images/GIFs (~140 MB) are never committed here; the demo build points at the
-# upstream dataset on jsDelivr instead, pinned to a commit so the CDN can cache it forever.
-name: Deploy demo to GitHub Pages
+# Pages serves static files only, which is all this build needs. The app routes behind the hash and
+# its assets are relative (vite `base: './'`), so the /opengym-pwa/ subpath needs no configuration
+# and a reload on any screen cannot 404.
+name: Deploy PWA to GitHub Pages
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# Nothing by default; each job asks for exactly what it needs.
+permissions: {}
 
+# One deployment at a time; a newer push waits rather than cancelling one already publishing.
 concurrency:
   group: pages
-  cancel-in-progress: true
-
-env:
-  DATASET: https://cdn.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@7455efae41b330c265e7cd4b78dfa848e7ce5ebd
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
+      # Node 22, as upstream's CI and Dockerfiles use.
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -42,12 +39,15 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
-      - run: npm run build
+      # A failing test stops the deployment: the site keeps the last build that passed.
+      - run: npm test
         working-directory: frontend
-        env:
-          VITE_DEMO: '1'
-          VITE_IMG_BASE: ${{ env.DATASET }}/images/
-          VITE_GIF_BASE: ${{ env.DATASET }}/videos/
+      - run: node scripts/check-locales.mjs
+        working-directory: frontend
+      - run: node scripts/check-source-strings.mjs
+        working-directory: frontend
+      - run: npm run build:pwa
+        working-directory: frontend
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
@@ -56,6 +56,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write      # publish the artifact
+      id-token: write   # prove to Pages that this workflow run is the one publishing
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}

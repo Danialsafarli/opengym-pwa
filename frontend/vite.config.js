@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
 const backend = process.env.API_TARGET || 'http://127.0.0.1:3000'
@@ -58,9 +58,28 @@ const swStamp = {
 const pkgVersion = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version
 const appVersion = process.env.APP_BUILD ? `${pkgVersion}+${process.env.APP_BUILD}` : pkgVersion
 
-export default defineConfig({
+// The standalone PWA build (`vite build --mode pwa`, frontend/.env.pwa) ships a proper
+// manifest.webmanifest: the upstream manifest.json plus an `id`, so an installed copy keeps its
+// identity if the start URL ever moves. Everything in it stays relative — the build is served
+// from a subpath (https://<user>.github.io/<repo>/), and "./" resolves against the manifest's own
+// address. index.html is pointed at it; manifest.json stays beside it for anything that asked for
+// the old name. Other builds are untouched.
+const standaloneManifest = {
+  name: 'opengym-standalone-manifest',
+  apply: 'build',
+  transformIndexHtml(html) {
+    return html.replace('href="manifest.json"', 'href="manifest.webmanifest"')
+  },
+  generateBundle() {
+    const base = JSON.parse(readFileSync(new URL('./public/manifest.json', import.meta.url), 'utf8'))
+    const manifest = { id: './', ...base, start_url: './', scope: './', display: 'standalone' }
+    this.emitFile({ type: 'asset', fileName: 'manifest.webmanifest', source: JSON.stringify(manifest, null, 2) + '\n' })
+  }
+}
+
+export default defineConfig(({ mode }) => ({
   define: { __APP_VERSION__: JSON.stringify(appVersion) },
-  plugins: [react(), umami, swStamp],
+  plugins: [react(), umami, swStamp, ...(loadEnv(mode, process.cwd(), 'VITE_').VITE_STANDALONE_WEB === '1' ? [standaloneManifest] : [])],
   base: './',
   server: {
     // The Coach's core (payload, validator, prompts, HTTP adapters) lives in ../api/coach/core
@@ -74,4 +93,4 @@ export default defineConfig({
     }
   },
   build: { chunkSizeWarningLimit: 1500 }
-})
+}))

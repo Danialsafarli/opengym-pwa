@@ -1,3 +1,13 @@
+> **This is a modified fork** of [openGym](https://github.com/DuarteSantos8/openGym) by Duarte
+> Santos, forked from v1.3.9 on 2026-10-01. It adds a **standalone PWA** that runs entirely in the
+> browser, with no server, no account and data stored on your device, deployed free on GitHub Pages:
+>
+> **▶ <https://danialsafarli.github.io/opengym-pwa/>** (on iPhone: open in Safari → Share → Add to Home Screen)
+>
+> What changed, how it works, and how to build, deploy and back up: **[docs/PWA_STANDALONE.md](docs/PWA_STANDALONE.md)**.
+> Licensed, like the original, under the GNU AGPL v3.0 or later ([LICENSE](LICENSE), [NOTICE.md](NOTICE.md)).
+> Everything below is the upstream README and describes upstream's self-hosted setup.
+
 <div align="center">
 
 <img src="assets/banner.png" alt="openGym" width="720">

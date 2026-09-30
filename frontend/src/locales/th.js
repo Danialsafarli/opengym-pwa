@@ -462,6 +462,7 @@ export default {
   'Deletes your plan, workouts, body weight, photos and videos from your profile on this server and on every signed-in device. This cannot be undone.': 'จะลบแผน, การออกกำลังกาย, น้ำหนักตัว, รูปภาพ และวิดีโอออกจากโปรไฟล์ของคุณบนเซิร์ฟเวอร์นี้ และจากทุกอุปกรณ์ที่เข้าสู่ระบบอยู่ ไม่สามารถย้อนกลับได้',
   'Sync failed: the server refused the upload as too large. Your changes have not reached the server.': 'ซิงค์ไม่สำเร็จ: เซิร์ฟเวอร์ปฏิเสธการอัปโหลดเพราะข้อมูลใหญ่เกินไป การเปลี่ยนแปลงของคุณยังไม่ถึงเซิร์ฟเวอร์',
   'This device is out of storage: the change is not saved on it. Signed in, it still goes to the server.': 'อุปกรณ์นี้ไม่มีที่ว่างเหลือ: การเปลี่ยนแปลงไม่ได้บันทึกไว้บนอุปกรณ์ หากลงชื่อเข้าใช้อยู่ ข้อมูลจะยังถูกส่งไปที่เซิร์ฟเวอร์',
+  'This device is out of storage: the change could not be saved. Export a backup from Settings.': 'อุปกรณ์นี้ไม่มีที่ว่างเหลือ: บันทึกการเปลี่ยนแปลงไม่ได้ ส่งออกข้อมูลสำรองจากหน้าตั้งค่า',
   'Delete everything': 'ลบทุกอย่าง',
   'All data reset': 'รีเซ็ตข้อมูลทั้งหมดแล้ว',
   'Backup exported': 'ส่งออกข้อมูลสำรองแล้ว',

@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore.js'
 import { DEMO } from '../lib/demo.js'
+import { STANDALONE_WEB } from '../lib/standalone.js'
 import { connectionView, actionLabel, syncNowWithToast, pairAgain, connectServer, signInAgain, useOnline } from './ServerSync.jsx'
 import Icon from './Icon.jsx'
 
@@ -41,7 +42,7 @@ export default function SyncBanner() {
   const view = connectionView(sync, { online })
   // Signed out on the web, the sign-in screen is the whole app: it hears only that the server
   // ended the session, and that the changes are still here.
-  const show = !DEMO && !onboarding && !!view?.banner && (!!user || guest || status === 'auth') && (status !== 'pending' || waited)
+  const show = !DEMO && !STANDALONE_WEB && !onboarding && !!view?.banner && (!!user || guest || status === 'auth') && (status !== 'pending' || waited)
 
   useLayoutEffect(() => {
     const root = document.documentElement

@@ -16,6 +16,7 @@ import { t, LANGS, INSTR_LANGS, EXERCISE_NAME_LANGS, baseLang } from '../lib/i18
 import { effectiveLang } from '../lib/default-lang.js'
 import { DEMO, REPO } from '../lib/demo.js'
 import { MOBILE, isAndroid, shareExport, shareExportBlob, syncReminder } from '../lib/mobile.js'
+import { STANDALONE_WEB, saveFile } from '../lib/standalone.js'
 import { referencedFiles } from '../lib/media-refs.js'
 import { mediaStore } from '../lib/media-store.js'
 import { syncMedia, fetchToStore } from '../lib/media-sync.js'
@@ -30,6 +31,10 @@ import { ServerSyncSection, KeptChangesRows, leaveServer, connectServer, passkey
 import { passwordOn, PasswordRow, openPasswordSignIn, openPasswordRegister } from '../components/PasswordAuth.jsx'
 import { usePasskeys, PasskeysRow, DeviceLinkRow } from '../components/Passkeys.jsx'
 import { Section, Row, SelectRow, Switch, Segmented, Button, TextField } from '../components/ui.jsx'
+
+// Where the source of the build you are running lives (AGPL §13). A modified build — the
+// standalone PWA fork, say — sets VITE_SOURCE_URL to its own repository at build time.
+const SOURCE_URL = import.meta.env.VITE_SOURCE_URL || 'https://github.com/DuarteSantos8/openGym'
 
 export default function Settings() {
   const nav = useNavigate()
@@ -152,6 +157,12 @@ export default function Settings() {
       return
     }
     const blob = new Blob([json], { type: 'application/json' })
+    // The standalone PWA, often opened from the iPhone's Home Screen, hands it to the share sheet
+    // ("Save to Files") where it can, since a download there may not come back to the app.
+    if (STANDALONE_WEB) {
+      if (await saveFile(blob, name) !== 'cancelled') toast(t('Backup exported'))
+      return
+    }
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); URL.revokeObjectURL(a.href)
     toast(t('Backup exported'))
   }
@@ -169,6 +180,10 @@ export default function Settings() {
     if (out.missing) toast(t(out.missing === 1 ? '{0} file could not be included' : '{0} files could not be included', out.missing))
     if (MOBILE) {
       try { await shareExportBlob(out.blob, name); if (!out.missing) toast(t('Backup exported')) } catch (e) { /* share sheet dismissed */ }
+      return
+    }
+    if (STANDALONE_WEB) {
+      if (await saveFile(out.blob, name) !== 'cancelled' && !out.missing) toast(t('Backup exported'))
       return
     }
     const a = document.createElement('a'); a.href = URL.createObjectURL(out.blob); a.download = name; a.click()
@@ -287,8 +302,11 @@ export default function Settings() {
     </ServerSyncSection>}
 
     {/* ---------- account (demo and mobile builds have nothing to sign in to) ---------- */}
-    {!(MOBILE && user) && <Section title={MOBILE ? t('Your data') : DEMO ? t('Demo') : t('Account')}>
-      {MOBILE ? <>
+    {!(MOBILE && user) && <Section title={MOBILE || STANDALONE_WEB ? t('Your data') : DEMO ? t('Demo') : t('Account')}>
+      {STANDALONE_WEB ? <>
+        {/* The standalone PWA: no server, no sign-in, no pairing — a phone app would offer those. */}
+        <Row icon="lock" iconTint="var(--acc)" title={t('Guest data stays on this device — export a backup now and then!')} subtitle={t('No account, no cloud — back it up anytime with Export below.')} />
+      </> : MOBILE ? <>
         <Row icon="lock" iconTint="var(--acc)" title={t('All data stays on this phone')} subtitle={t('No account, no cloud — back it up anytime with Export below.')} />
         <Row icon="link" iconTint="var(--indigo)" title={t('Connect to my server')} subtitle={t('Sync this device to your own self-hosted openGym instead.')} accessory="chevron"
           onClick={connectServer} />
@@ -324,7 +342,7 @@ export default function Settings() {
         <KeptChangesRows />
       </>}
     </Section>}
-    {!user && !DEMO && !MOBILE && <p className="sect-f" style={{ marginTop: -18, marginBottom: 22 }}>{t('Guest mode — data lives only in this browser.')}</p>}
+    {!user && !DEMO && !MOBILE && !STANDALONE_WEB && <p className="sect-f" style={{ marginTop: -18, marginBottom: 22 }}>{t('Guest mode — data lives only in this browser.')}</p>}
 
     {/* ---------- the Coach on a phone: through the paired server, or with the user's own key ---------- */}
     {MOBILE && <Section title={t('AI Coach')}>
@@ -578,7 +596,7 @@ export default function Settings() {
         On Android the row is always there — it checks on demand and installs when a release is
         newer (checksum verified, see onUpdateRowClick). On the web the app updates with its
         server, so the row points at the APK for the phone instead. iOS has no APK: nothing. */}
-    {(!MOBILE || android) && <Section title={t('Updates')}
+    {(!MOBILE || android) && !STANDALONE_WEB && <Section title={t('Updates')}
       footer={MOBILE ? t('Releases are checked on gitlab.com. The download is verified against its checksum before the installer opens.') : t('The web app updates together with your server. The Android app installs its own updates from here.')}>
       {MOBILE
         ? <Row icon="download" iconTint="var(--acc)"
@@ -597,7 +615,7 @@ export default function Settings() {
         are running, or whether an update actually installed. */}
     <div className="dim small" style={{ textAlign: 'center', marginTop: 4, lineHeight: 1.6 }}>
       openGym v{__APP_VERSION__} · {t('free & open source (AGPL v3)')}<br />
-      <a href="https://github.com/DuarteSantos8/openGym" target="_blank" rel="noopener">source code</a> · exercise data: hasaneyldrm/exercises-dataset (MIT)<br />
+      <a href={SOURCE_URL} target="_blank" rel="noopener">source code</a> · exercise data: hasaneyldrm/exercises-dataset (MIT)<br />
       exercise images and animations © <a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym visual</a>
     </div>
   </div>
@@ -696,6 +714,8 @@ function effortHelpSheet() {
 }
 
 function NotificationsCard({ S, update, toast }) {
+  // Web Push needs a server to send it; the standalone web build has none.
+  if (STANDALONE_WEB) return null
   if (MOBILE) return <MobileReminderCard S={S} update={update} toast={toast} />
   return <PushCard S={S} update={update} toast={toast} />
 }

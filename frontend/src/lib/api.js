@@ -1,6 +1,7 @@
 // Backend + WebAuthn helpers (ported from the vanilla app).
 import { t } from './i18n-core.js'
 import { MOBILE } from './mobile.js'
+import { STANDALONE_WEB } from './standalone.js'
 import { appBase } from './app-base.js'
 
 export const IS_APPLE = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)
@@ -43,8 +44,10 @@ export async function api(path, opts) {
   // relative URL to fall back on here — the WebView's own origin is Capacitor's local asset
   // server, which answers ANY path, PUT included, with index.html and a 200, so a push "landed"
   // there and the change was marked as synced while the server never saw it. status 0, not
-  // undefined: this is not "offline", and the store must not show it as such.
-  if (MOBILE && !remoteBase) throw failure(t('This phone is not connected to a server.'), 'not-paired', 0)
+  // undefined: this is not "offline", and the store must not show it as such. The standalone web
+  // build (lib/standalone.js) has no server either: a static host such as GitHub Pages answers
+  // /api/* with its 404 page, and nothing may ever be sent there.
+  if ((MOBILE || STANDALONE_WEB) && !remoteBase) throw failure(t('This phone is not connected to a server.'), 'not-paired', 0)
   const headers = Object.assign({ 'Content-Type': 'application/json' }, init.headers)
   if (remoteToken) headers.Authorization = 'Bearer ' + remoteToken
   // A paired phone has an absolute base of its own; everyone else is relative to where the app
@@ -92,7 +95,7 @@ async function exchange(url, init) {
 // origin is Capacitor's asset server, which answers every path with index.html: the phones sent
 // every "left" to https://localhost/api/activity. The api() call beside it reaches the server.
 export function beacon(path, body) {
-  if (MOBILE) return false
+  if (MOBILE || STANDALONE_WEB) return false
   try {
     if (typeof navigator === 'undefined' || typeof navigator.sendBeacon !== 'function') return false
     return !!navigator.sendBeacon(appBase().replace(/\/$/, '') + path, new Blob([JSON.stringify(body)], { type: 'application/json' }))
@@ -118,7 +121,7 @@ const timedOut = () => failure(t('The server did not answer in time.'), 'timeout
  * Errors carry { status, code } like api()'s: the server's code on a refusal (media-missing).
  */
 export async function apiBlob(path, { expectSize, idleMs = 30000, fetchImpl = globalThis.fetch } = {}) {
-  if (MOBILE && !remoteBase) throw notPaired()
+  if ((MOBILE || STANDALONE_WEB) && !remoteBase) throw notPaired()
   const max = typeof expectSize === 'number' && expectSize >= 0 ? expectSize + 1024 : Infinity
   const ctl = typeof AbortController === 'function' ? new AbortController() : null
   let timer = null
@@ -174,7 +177,7 @@ export async function apiBlob(path, { expectSize, idleMs = 30000, fetchImpl = gl
  * `idleMs` without progress; no status at all when the network failed.
  */
 export function apiUpload(path, blob, mime, { onProgress, idleMs = 60000, XHR = globalThis.XMLHttpRequest } = {}) {
-  if (MOBILE && !remoteBase) return Promise.reject(notPaired())
+  if ((MOBILE || STANDALONE_WEB) && !remoteBase) return Promise.reject(notPaired())
   return new Promise((resolve, reject) => {
     const xhr = new XHR()
     let timer = null

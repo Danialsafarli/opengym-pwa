@@ -1262,6 +1262,7 @@ export default {
   '0.5': '0,5',
   '0.25': '0,25',
   'This device is out of storage: the change is not saved on it. Signed in, it still goes to the server.': 'На цьому пристрої скінчилося місце: зміну на ньому не збережено. Після входу в акаунт вона все одно потрапить на сервер.',
+  'This device is out of storage: the change could not be saved. Export a backup from Settings.': 'На цьому пристрої скінчилося місце: зміну не вдалося зберегти. Експортуйте резервну копію в налаштуваннях.',
   'Added {0} routine to your plan': 'У твій план додано {0} програму',
   'Every rep last time — {0} {1} less help.': 'Минулого разу всі повторення — на {0} {1} менше допомоги.',
   'Top of the rep range in every set — {0} {1} less help, back to {2} reps.': 'Верх діапазону повторень у кожному підході — на {0} {1} менше допомоги, знову {2} повт.',

@@ -1326,6 +1326,7 @@ export default {
   'English names only': 'الأسماء الإنجليزية فقط',
   'Replace the translated names with the original English ones.': 'يستبدل الأسماء المترجمة بالأسماء الإنجليزية الأصلية.',
   'This device is out of storage: the change is not saved on it. Signed in, it still goes to the server.': 'لا توجد مساحة تخزين كافية على هذا الجهاز: لم يُحفظ التغيير عليه. إذا كنت مسجّل الدخول، فسيصل إلى الخادم رغم ذلك.',
+  'This device is out of storage: the change could not be saved. Export a backup from Settings.': 'لا توجد مساحة تخزين كافية على هذا الجهاز: تعذّر حفظ التغيير. صدّر نسخة احتياطية من الإعدادات.',
   'Enter the endpoint URL': 'أدخل عنوان URL لنقطة النهاية',
   'There is no routine to review yet — build one with at least two exercises first.': 'لا يوجد روتين لمراجعته بعد — أنشئ روتينًا يضم تمرينين على الأقل أولًا.',
   'Change date & time': 'تغيير التاريخ والوقت',

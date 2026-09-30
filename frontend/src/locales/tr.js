@@ -462,6 +462,7 @@ export default {
   'Deletes your plan, workouts, body weight, photos and videos from your profile on this server and on every signed-in device. This cannot be undone.': 'Bu sunucudaki profilinden ve oturum açılmış tüm cihazlardan planını, antrenmanlarını, vücut ağırlığını, fotoğraflarını ve videolarını siler. Geri alınamaz.',
   'Sync failed: the server refused the upload as too large. Your changes have not reached the server.': 'Eşitleme başarısız: sunucu yüklemeyi çok büyük diye reddetti. Değişikliklerin sunucuya ulaşmadı.',
   'This device is out of storage: the change is not saved on it. Signed in, it still goes to the server.': 'Bu cihazda yer kalmadı: değişiklik cihaza kaydedilmedi. Oturum açıkken sunucuya yine de gidiyor.',
+  'This device is out of storage: the change could not be saved. Export a backup from Settings.': 'Bu cihazda yer kalmadı: değişiklik kaydedilemedi. Ayarlar’dan bir yedek dışa aktarın.',
   'Delete everything': 'Her şeyi sil',
   'All data reset': 'Tüm veriler sıfırlandı',
   'Backup exported': 'Yedek dışa aktarıldı',

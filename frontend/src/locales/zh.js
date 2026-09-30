@@ -462,6 +462,7 @@ export default {
   'Deletes your plan, workouts, body weight, photos and videos from your profile on this server and on every signed-in device. This cannot be undone.': '从此服务器上的档案以及所有已登录设备中删除计划、训练、体重、照片和视频。无法撤销。',
   'Sync failed: the server refused the upload as too large. Your changes have not reached the server.': '同步失败：服务器拒绝了上传，内容过大。你的更改尚未同步到服务器。',
   'This device is out of storage: the change is not saved on it. Signed in, it still goes to the server.': '此设备存储空间已满：更改未保存在设备上。已登录时，它仍会同步到服务器。',
+  'This device is out of storage: the change could not be saved. Export a backup from Settings.': '此设备存储空间已满：无法保存更改。请在设置中导出备份。',
   'Delete everything': '全部删除',
   'All data reset': '所有数据已重置',
   'Backup exported': '备份已导出',

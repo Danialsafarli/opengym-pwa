@@ -462,6 +462,7 @@ export default {
   'Deletes your plan, workouts, body weight, photos and videos from your profile on this server and on every signed-in device. This cannot be undone.': 'इस सर्वर पर आपकी प्रोफ़ाइल से और साइन इन किए हुए सभी डिवाइस से आपकी योजना, वर्कआउट, वज़न, फ़ोटो और वीडियो हट जाएँगे। इसे पूर्ववत नहीं किया जा सकता।',
   'Sync failed: the server refused the upload as too large. Your changes have not reached the server.': 'सिंक विफल: सर्वर ने अपलोड को बहुत बड़ा बताकर अस्वीकार कर दिया। आपके बदलाव सर्वर तक नहीं पहुँचे हैं।',
   'This device is out of storage: the change is not saved on it. Signed in, it still goes to the server.': 'इस डिवाइस में जगह नहीं बची: बदलाव इस पर सेव नहीं हुआ है। साइन इन होने पर यह फिर भी सर्वर तक पहुँच जाएगा।',
+  'This device is out of storage: the change could not be saved. Export a backup from Settings.': 'इस डिवाइस में जगह नहीं बची: बदलाव सेव नहीं हो सका। सेटिंग्स से एक बैकअप निर्यात करें।',
   'Delete everything': 'सब हटाएँ',
   'All data reset': 'सारा डेटा रीसेट',
   'Backup exported': 'बैकअप निर्यात हुआ',

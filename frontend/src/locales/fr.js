@@ -462,6 +462,7 @@ export default {
   'Deletes your plan, workouts, body weight, photos and videos from your profile on this server and on every signed-in device. This cannot be undone.': 'Supprime ton plan, tes séances, ton poids corporel, tes photos et tes vidéos de ton profil sur ce serveur et sur tous les appareils connectés. Irréversible.',
   'Sync failed: the server refused the upload as too large. Your changes have not reached the server.': 'Échec de la synchronisation : le serveur a refusé l’envoi, trop volumineux. Tes modifications n’ont pas atteint le serveur.',
   'This device is out of storage: the change is not saved on it. Signed in, it still goes to the server.': 'Cet appareil n’a plus d’espace de stockage : la modification n’y est pas enregistrée. Connecté, elle part quand même vers le serveur.',
+  'This device is out of storage: the change could not be saved. Export a backup from Settings.': 'Cet appareil n’a plus d’espace de stockage : la modification n’a pas pu être enregistrée. Exportez une sauvegarde depuis les Réglages.',
   'Delete everything': 'Tout supprimer',
   'All data reset': 'Toutes les données réinitialisées',
   'Backup exported': 'Sauvegarde exportée',
